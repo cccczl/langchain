@@ -60,10 +60,9 @@ def _to_args_and_kwargs(model: BaseModel) -> Tuple[Sequence, dict]:
                 args.append(value)
             elif value is not None:
                 args.extend(value)
-        # Handle **kwargs in the function signature
         elif field.field_info.extra.get("extra", {}).get("is_var_keyword"):
             if value is not None:
-                kwargs.update(value)
+                kwargs |= value
         elif field.field_info.extra.get("extra", {}).get("is_keyword_only"):
             kwargs[name] = value
         else:
@@ -144,10 +143,7 @@ class BaseTool(ABC, BaseModel):
     ) -> str:
         """Run the tool."""
         run_input = self._parse_input(tool_input)
-        if not self.verbose and verbose is not None:
-            verbose_ = verbose
-        else:
-            verbose_ = self.verbose
+        verbose_ = self.verbose if self.verbose or verbose is None else verbose
         self.callback_manager.on_tool_start(
             {"name": self.name, "description": self.description},
             str(run_input),
@@ -176,10 +172,7 @@ class BaseTool(ABC, BaseModel):
     ) -> str:
         """Run the tool asynchronously."""
         run_input = self._parse_input(tool_input)
-        if not self.verbose and verbose is not None:
-            verbose_ = verbose
-        else:
-            verbose_ = self.verbose
+        verbose_ = self.verbose if self.verbose or verbose is None else verbose
         if self.callback_manager.is_async:
             await self.callback_manager.on_tool_start(
                 {"name": self.name, "description": self.description},

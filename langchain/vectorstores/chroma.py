@@ -225,8 +225,7 @@ class Chroma(VectorStore):
 
         candidates = _results_to_docs(results)
 
-        selected_results = [r for i, r in enumerate(candidates) if i in mmr_selected]
-        return selected_results
+        return [r for i, r in enumerate(candidates) if i in mmr_selected]
 
     def max_marginal_relevance_search(
         self,
@@ -253,10 +252,9 @@ class Chroma(VectorStore):
             )
 
         embedding = self._embedding_function.embed_query(query)
-        docs = self.max_marginal_relevance_search_by_vector(
+        return self.max_marginal_relevance_search_by_vector(
             embedding, k, fetch_k, filter
         )
-        return docs
 
     def delete_collection(self) -> None:
         """Delete the collection."""

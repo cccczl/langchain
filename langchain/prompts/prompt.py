@@ -18,8 +18,7 @@ from langchain.prompts.base import (
 def _get_jinja2_variables_from_template(template: str) -> Set[str]:
     env = Environment()
     ast = env.parse(template)
-    variables = meta.find_undeclared_variables(ast)
-    return variables
+    return meta.find_undeclared_variables(ast)
 
 
 class PromptTemplate(StringPromptTemplate):

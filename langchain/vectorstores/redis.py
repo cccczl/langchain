@@ -219,17 +219,16 @@ class Redis(VectorStore):
         # perform vector search
         results = self.client.ft(self.index_name).search(redis_query, params_dict)
 
-        docs = [
+        return [
             (
                 Document(
-                    page_content=result.content, metadata=json.loads(result.metadata)
+                    page_content=result.content,
+                    metadata=json.loads(result.metadata),
                 ),
                 float(result.vector_score),
             )
             for result in results.docs
         ]
-
-        return docs
 
     @classmethod
     def from_texts(

@@ -43,13 +43,13 @@ class UnstructuredURLLoader(BaseLoader):
 
     def __is_headers_available(self) -> bool:
         _unstructured_version = self.__version.split("-")[0]
-        unstructured_version = tuple([int(x) for x in _unstructured_version.split(".")])
+        unstructured_version = tuple(int(x) for x in _unstructured_version.split("."))
 
         return unstructured_version >= (0, 5, 7)
 
     def __is_non_html_available(self) -> bool:
         _unstructured_version = self.__version.split("-")[0]
-        unstructured_version = tuple([int(x) for x in _unstructured_version.split(".")])
+        unstructured_version = tuple(int(x) for x in _unstructured_version.split("."))
 
         return unstructured_version >= (0, 5, 12)
 
@@ -58,7 +58,7 @@ class UnstructuredURLLoader(BaseLoader):
         from unstructured.partition.auto import partition
         from unstructured.partition.html import partition_html
 
-        docs: List[Document] = list()
+        docs: List[Document] = []
         for url in self.urls:
             try:
                 if self.headers and self.__is_headers_available():
@@ -70,11 +70,10 @@ class UnstructuredURLLoader(BaseLoader):
                 else:
                     elements = partition_html(url=url, **self.unstructured_kwargs)
             except Exception as e:
-                if self.continue_on_failure:
-                    logger.error(f"Error fetching or processing {url}, exeption: {e}")
-                    continue
-                else:
+                if not self.continue_on_failure:
                     raise e
+                logger.error(f"Error fetching or processing {url}, exeption: {e}")
+                continue
             text = "\n\n".join([str(el) for el in elements])
             metadata = {"source": url}
             docs.append(Document(page_content=text, metadata=metadata))

@@ -123,10 +123,7 @@ class WebBaseLoader(BaseLoader):
         for i, result in enumerate(results):
             url = urls[i]
             if parser is None:
-                if url.endswith(".xml"):
-                    parser = "xml"
-                else:
-                    parser = self.default_parser
+                parser = "xml" if url.endswith(".xml") else self.default_parser
                 self._check_parser(parser)
             final_results.append(BeautifulSoup(result, parser))
 
@@ -136,11 +133,7 @@ class WebBaseLoader(BaseLoader):
         from bs4 import BeautifulSoup
 
         if parser is None:
-            if url.endswith(".xml"):
-                parser = "xml"
-            else:
-                parser = self.default_parser
-
+            parser = "xml" if url.endswith(".xml") else self.default_parser
         self._check_parser(parser)
 
         html_doc = self.session.get(url)
