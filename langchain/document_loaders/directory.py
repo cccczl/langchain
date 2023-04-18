@@ -17,10 +17,7 @@ logger = logging.getLogger(__name__)
 
 def _is_visible(p: Path) -> bool:
     parts = p.parts
-    for _p in parts:
-        if _p.startswith("."):
-            return False
-    return True
+    return not any(_p.startswith(".") for _p in parts)
 
 
 class DirectoryLoader(BaseLoader):
@@ -53,14 +50,13 @@ class DirectoryLoader(BaseLoader):
         docs = []
         items = p.rglob(self.glob) if self.recursive else p.glob(self.glob)
         for i in items:
-            if i.is_file():
-                if _is_visible(i.relative_to(p)) or self.load_hidden:
-                    try:
-                        sub_docs = self.loader_cls(str(i), **self.loader_kwargs).load()
-                        docs.extend(sub_docs)
-                    except Exception as e:
-                        if self.silent_errors:
-                            logger.warning(e)
-                        else:
-                            raise e
+            if i.is_file() and (_is_visible(i.relative_to(p)) or self.load_hidden):
+                try:
+                    sub_docs = self.loader_cls(str(i), **self.loader_kwargs).load()
+                    docs.extend(sub_docs)
+                except Exception as e:
+                    if self.silent_errors:
+                        logger.warning(e)
+                    else:
+                        raise e
         return docs

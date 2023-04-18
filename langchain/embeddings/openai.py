@@ -197,7 +197,7 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
     def _get_len_safe_embeddings(
         self, texts: List[str], *, engine: str, chunk_size: Optional[int] = None
     ) -> List[List[float]]:
-        embeddings: List[List[float]] = [[] for i in range(len(texts))]
+        embeddings: List[List[float]] = [[] for _ in range(len(texts))]
         try:
             import tiktoken
 
@@ -247,15 +247,13 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
 
     def _embedding_func(self, text: str, *, engine: str) -> List[float]:
         """Call out to OpenAI's embedding endpoint."""
-        # handle large input text
         if self.embedding_ctx_length > 0:
             return self._get_len_safe_embeddings([text], engine=engine)[0]
-        else:
-            # replace newlines, which can negatively affect performance.
-            text = text.replace("\n", " ")
-            return embed_with_retry(self, input=[text], engine=engine)["data"][0][
-                "embedding"
-            ]
+        # replace newlines, which can negatively affect performance.
+        text = text.replace("\n", " ")
+        return embed_with_retry(self, input=[text], engine=engine)["data"][0][
+            "embedding"
+        ]
 
     def embed_documents(
         self, texts: List[str], chunk_size: Optional[int] = 0
@@ -270,20 +268,18 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
         Returns:
             List of embeddings, one for each text.
         """
-        # handle batches of large input text
         if self.embedding_ctx_length > 0:
             return self._get_len_safe_embeddings(texts, engine=self.document_model_name)
-        else:
-            results = []
-            _chunk_size = chunk_size or self.chunk_size
-            for i in range(0, len(texts), _chunk_size):
-                response = embed_with_retry(
-                    self,
-                    input=texts[i : i + _chunk_size],
-                    engine=self.document_model_name,
-                )
-                results += [r["embedding"] for r in response["data"]]
-            return results
+        results = []
+        _chunk_size = chunk_size or self.chunk_size
+        for i in range(0, len(texts), _chunk_size):
+            response = embed_with_retry(
+                self,
+                input=texts[i : i + _chunk_size],
+                engine=self.document_model_name,
+            )
+            results += [r["embedding"] for r in response["data"]]
+        return results
 
     def embed_query(self, text: str) -> List[float]:
         """Call out to OpenAI's embedding endpoint for embedding query text.
@@ -294,5 +290,4 @@ class OpenAIEmbeddings(BaseModel, Embeddings):
         Returns:
             Embedding for the text.
         """
-        embedding = self._embedding_func(text, engine=self.query_model_name)
-        return embedding
+        return self._embedding_func(text, engine=self.query_model_name)

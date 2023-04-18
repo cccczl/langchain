@@ -27,7 +27,7 @@ class WriteFileTool(BaseTool):
                 f.write(text)
             return "File written to successfully."
         except Exception as e:
-            return "Error: " + str(e)
+            return f"Error: {str(e)}"
 
     async def _arun(self, tool_input: str) -> str:
         # TODO: Add aiofiles method

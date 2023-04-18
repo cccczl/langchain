@@ -56,8 +56,9 @@ class ConfluenceLoader(BaseLoader):
         oauth2: Optional[dict] = None,
         cloud: bool = True,
     ):
-        errors = ConfluenceLoader.validate_init_args(url, api_key, username, oauth2)
-        if errors:
+        if errors := ConfluenceLoader.validate_init_args(
+            url, api_key, username, oauth2
+        ):
             raise ValueError(f"Error(s) while validating input: {errors}")
 
         self.base_url = url
@@ -114,9 +115,7 @@ class ConfluenceLoader(BaseLoader):
                 "`['access_token', 'access_token_secret', 'consumer_key', 'key_cert']`"
             )
 
-        if errors:
-            return errors
-        return None
+        return errors if errors else None
 
     def load(
         self,
@@ -269,11 +268,7 @@ class ConfluenceLoader(BaseLoader):
             title = attachment["title"]
             if media_type == "application/pdf":
                 text = title + self.process_pdf(absolute_url)
-            elif (
-                media_type == "image/png"
-                or media_type == "image/jpg"
-                or media_type == "image/jpeg"
-            ):
+            elif media_type in ["image/png", "image/jpg", "image/jpeg"]:
                 text = title + self.process_image(absolute_url)
             elif (
                 media_type == "application/vnd.openxmlformats-officedocument"
@@ -362,14 +357,12 @@ class ConfluenceLoader(BaseLoader):
             )
 
         response = self.confluence.request(path=link, absolute=True)
-        text = ""
-
         if (
             response.status_code != 200
             or response.content == b""
             or response.content is None
         ):
-            return text
+            return ""
         file_data = BytesIO(response.content)
 
         return docx2txt.process(file_data)
@@ -417,15 +410,12 @@ class ConfluenceLoader(BaseLoader):
             )
 
         response = self.confluence.request(path=link, absolute=True)
-        text = ""
-
         if (
             response.status_code != 200
             or response.content == b""
             or response.content is None
         ):
-            return text
-
+            return ""
         drawing = svg2rlg(BytesIO(response.content))
 
         img_data = BytesIO()
